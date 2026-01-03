@@ -1,215 +1,159 @@
+
 ### Stackedge
 
 <div align="center">
   <img src="/download.jfif" alt="Stackedge Logo" width="200"/>
 </div>
 
-## Decentralized App Hosting on Android using Termux + Tor
+[![npm version](https://img.shields.io/badge/npm-v0.0.0-lightgrey)](https://www.npmjs.com/) [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-Stackedge is a Termux-friendly app hosting system that allows you to run any web app (Node.js, PHP, Go, etc.) on your Android device.
-Inspired by the desire to build something decentralized, privacy-focused, and open-source, Stackedge integrates Tor onion services to make your apps accessible anywhere safely.
+Decentralized app hosting on Android using Termux + Tor. Run web apps (Node.js, PHP, Go, Python, etc.) from your device and expose them via Tor onion services.
 
-Your apps start immediately, Tor bootstraps in the background, and you can manage them via a simple CLI (start, stop, restart, list, resurrect).
-
-**Features**
-
-- Run any app (Node.js, PHP, Go, Python…) from the folder you are in.
-
-- Tor integration for onion services.
-
-- Apps start immediately; Tor bootstraps in the background.
-
-- Resilient to Wi-Fi drops or Termux restarts.
-
-## CLI commands similar to pm2:
-
-- stackedge start <name> -- <command>
-
-- stackedge stop <name>
-
-- stackedge restart <name>
-
-- stackedge list
-
-- stackedge resurrect
-
-- Fallback command shows status and help.
-
-**Open-source and focused on privacy & decentralization.**
----
-
-### Table of Contents
-
-**Requirements**
-
-1.Installation
-
-2.Setup
-
-**Usage**
-
-1.Termux Auto-Resurrect
-
-**Project Philosophy**
-
-## Support
+Quick links: Installation · Quick Start · Commands · Configuration · Troubleshooting · Contributing
 
 ---
 
-### Requirements
+## Quick Start
 
-Android device
+1. Clone and install:
 
-Termux
- installed
-
-**Installed Termux packages:**
-```
-pkg update && pkg upgrade -y
-pkg install nodejs git tor -y
-```
-
-**Optional for PHP apps:**
-```
-pkg install php -y
-```
-
-**Optional for Go apps:**
-```
-pkg install golang -y
-
-```
-**Optional for Python apps:**
-```
-pkg install python -y
-```
-### Installation
-
-**Clone the Stackedge repository:**
-```
+```bash
 cd $HOME
 git clone https://github.com/Frost-bit-star/stackedge.git
 cd stackedge
-```
-
-
-**Install globally via npm:**
-```
 npm install -g .
 ```
 
-**Make sure the CLI is executable:**
-```
-chmod +x $HOME/.npm-global/bin/stackedge
-```
+2. Start an app from the app directory:
 
-**Verify installation:**
-```
-stackedge
-```
-
-**You should see a status summary and available commands.**
-
-### Setup
-
-Stackedge uses the following directory structure in Termux:
-```
-$HOME/.stackedge/
- ├── apps.json             # Stores all app info
- ├── tor/
- │   ├── torrc             # Tor config
- │   └── services/         # Onion services storage
- └── logs/                 # App logs
-```
-
-**Stackedge automatically creates these directories on first run.**
-
-## Usage
-Start an app
-
-Navigate to the app folder and run:
-```
+```bash
 cd ~/my-react-app
 stackedge start blog -- npm start
 ```
 
-- blog is the app name.
-
-- Everything after -- is the command to start your app.
-
-**Tor starts in the background; your app starts immediately.**
-
-### The onion address will appear once Tor is fully bootstrapped.
-
-## Stop an app
-- stackedge stop blog
-
-## Restart an app
-- stackedge restart blog
-
-## List all apps
-- stackedge list
+The app starts immediately; Tor will bootstrap in the background and the onion address appears when ready.
 
 ---
 
-**Shows:**
+## Installation
 
-- App name
+- Requirements: Android device with Termux and recommended packages:
 
-- App state (running/stopped)
+```bash
+pkg update && pkg upgrade -y
+pkg install nodejs git tor -y
+# optional
+pkg install php golang python -y
+```
 
-- Port
+- Install globally via npm (from repo root):
 
-- Tor state (pending/online)
+```bash
+npm install -g .
+```
 
-- Onion address
+Verify with `stackedge` to see the status summary and available commands.
 
-- Resurrect all apps
+---
 
-**Use this to restore apps after Termux restart or Wi-Fi loss:**
+## CLI Commands
 
-- stackedge resurrect
+- `stackedge start <name> -- <command>` — start app named `<name>` (everything after `--` is executed).
+- `stackedge stop <name>` — stop the app.
+- `stackedge restart <name>` — restart the app.
+- `stackedge list` — list apps, state, ports and onion addresses.
+- `stackedge resurrect` — restore apps after Termux restart or network issues.
 
-- Termux Auto-Resurrect
+Examples:
 
-**To automatically restore apps when Termux opens:**
+```bash
+stackedge start blog -- npm start
+stackedge stop blog
+stackedge list
+stackedge resurrect
+```
+
+---
+
+## Configuration & Data
+
+Stackedge stores runtime state under `$HOME/.stackedge/`:
+
+```
+$HOME/.stackedge/
+ ├── apps.json       # registered apps and metadata
+ ├── tor/
+ │   ├── torrc
+ │   └── services/   # onion services
+ └── logs/           # app and tor logs
+```
+
+Minimal `apps.json` example (auto-managed):
+
+```json
+{
+  "blog": {
+    "cwd": "/data/data/com.termux/files/home/my-react-app",
+    "cmd": "npm start",
+    "port": 3000
+  }
+}
+```
+
+See `lib/config.js` for configurable defaults.
+
+---
+
+## Termux Auto-Resurrect
+
+To automatically resurrect apps when Termux starts, add this to your shell config:
+
 ```bash
 echo 'if command -v stackedge >/dev/null; then stackedge resurrect >/dev/null 2>&1 & fi' >> ~/.bashrc
 ```
 
-- Apps will start immediately.
+---
 
-- Tor will bootstrap in the background.
+## Tor & Troubleshooting
 
-- No manual intervention needed.
+- Logs: check `$HOME/.stackedge/logs/` for app and Tor logs.
+- If Tor doesn't bootstrap, verify Tor is installed and inspect `tor/log` inside the `.stackedge` directory.
+- Common fixes: ensure storage permissions in Termux, restart Tor, or re-run `stackedge resurrect`.
 
-- Project Philosophy
-
-## Stackedge is:
-
-### Open-source: Learn, modify, and contribute.
-
-- Privacy-focused: Tor integration keeps your apps secure and accessible anonymously.
-
-- Decentralized hosting on Android: Your device becomes your own server.
-
-- Inspired by a love for Termux and building something great, this project is for developers, hackers, and privacy enthusiasts.
-
-Check out my other projects and tutorials:
- [here](https://www.youtube.com/@Mr_termux-r2l)
-
+If you still see issues, open an issue with logs attached.
 
 ---
 
-### ☕ Support This Project
+## Examples
 
-If you value open-source and anonymity, support me so I can keep building decentralized hosting tools on Android:
-
-<a href="https://buymeacoffee.com/morganmilsn" target="_blank"> <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" height="50" alt="Buy Me A Coffee"> </a>
-
-
-License
+Create an `examples/` folder (recommended) with small sample apps and start commands for Node, PHP, Python, and Go to help new users.
 
 ---
 
-MIT License – Open source for everyone.
+## Contributing
+
+Contributions welcome. Please:
+
+- Fork the repo and open a PR with a clear description.
+- Run linters/tests (if added) before submitting.
+- Use concise commits and reference issues.
+
+See `CONTRIBUTING.md` for more (create one if you want a template).
+
+---
+
+## Security
+
+Report security issues via a private issue or email. Do not post sensitive details publicly.
+
+---
+
+## Support
+
+If you find Stackedge useful, consider sponsoring or buying a coffee.
+
+---
+
+## License
+
+MIT License — see `LICENSE`.
